@@ -74,10 +74,17 @@ while (!exit)
             break;
 
          case 5:
-
+            Console.Write("Food ID to update: ");
+            int updateId = int.Parse(Console.ReadLine());
+            Console.Write("New calories: ");
+            double newCalories = double.Parse(Console.ReadLine());
+            foodController.UpdateFood(updateId, newCalories);
             break;
 
         case 6:
+            Console.Write("Food ID to delete: ");
+            int deleteId = int.Parse(Console.ReadLine());
+            foodController.DeleteFood(deleteId);
             break;
 
         case 0:

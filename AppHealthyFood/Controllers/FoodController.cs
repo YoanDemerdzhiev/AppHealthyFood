@@ -23,7 +23,7 @@ namespace AppHealthyFood.Controllers
             return db.Foods.ToList();
         }
 
-        public void UpdateFood(int id, int calories)
+        public void UpdateFood(int id, double calories)
         {
             var food = db.Foods.Find(id);
             if (food != null)

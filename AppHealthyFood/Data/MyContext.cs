@@ -1,6 +1,7 @@
 ﻿using AppHealthyFood.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -16,19 +17,50 @@ namespace AppHealthyFood.Data
         public DbSet<MealPlan> MealPlans { get; set; }
         public MyContext() { }
         public MyContext(DbContextOptions options) : base(options) { }
+
+        public override int SaveChanges()
+        {
+            ValidateEntities();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ValidateEntities();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void ValidateEntities()
+        {
+            var entities = ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+                .Select(e => e.Entity);
+
+            foreach (var entity in entities)
+            {
+                var context = new ValidationContext(entity);
+                Validator.ValidateObject(entity, context, validateAllProperties: true);
+            }
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(Configuration.ConnectionString);
+                optionsBuilder.UseInMemoryDatabase("HealthyDb");
             }
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
-                .HasMany(u => u.MealPlans);
+                .HasMany(u => u.MealPlans)
+                .WithOne(mp => mp.User)
+                .HasForeignKey(mp => mp.UserId);
+
             modelBuilder.Entity<Food>()
-                .HasMany(u => u.MealPlans);
+                .HasMany(f => f.MealPlans)
+                .WithOne(mp => mp.Food)
+                .HasForeignKey(mp => mp.FoodId);
         }
     }
 }
